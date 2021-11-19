@@ -95,6 +95,7 @@ class Grafo:
     def dijkstra(self, source_node):
         visited = []
         indices = []
+        all_multiple_paths = []
         for x in self.estrutura:
             indices.append(x)
 
@@ -110,21 +111,36 @@ class Grafo:
             for ind in range(len(adjacent_nodes)):
                 if adjacent_nodes[ind][0] not in visited:
                     accumulated = 1 + cost[current_node][0]
+                    if accumulated == cost[adjacent_nodes[ind][0]][0]:
+                        multiple_path = [adjacent_nodes[ind]]
+                        multiple_path.append(current_node)
+                        atual = cost[current_node][1]
+                        multiple_path.append(atual)
+
+                        while(atual != source_node):
+                            atual = cost[atual][1]
+                            multiple_path.append(atual)
+
+                        multiple_path.reverse()
+                        all_multiple_paths.append(multiple_path)
+                    # if ind not in cost:
+                    #     cost[adjacent_nodes[ind][0]][0] = accumulated
+                    #     cost[adjacent_nodes[ind][0]][1] = current_node
                     if accumulated < cost[adjacent_nodes[ind][0]][0]:
                         cost[adjacent_nodes[ind][0]][0] = accumulated
                         cost[adjacent_nodes[ind][0]][1] = current_node
+
 
             visited.append(current_node)
             current_node = self.minDist(cost, visited)
 
         result = []
-        print(cost)
         for x in cost.values():
             if x[0] != np.inf:
                 if x[0] != 0 and x[1] != 0:
                     result.append(x[0])
 
-        return cost,result
+        return cost,result, all_multiple_paths
 
     # em implementacao
     def kruskal(self):
@@ -358,6 +374,22 @@ class Grafo:
         print(max(menores_caminhos))
         return max(menores_caminhos)
 
+    def diameter(self):
+        maiores = []
+        for node in self.estrutura:
+            maiores.append(self.eccentricity(node))
+
+        print(maiores)
+        return max(maiores)
+
+    def radius(self):
+        maiores = []
+        for node in self.estrutura:
+            maiores.append(self.eccentricity(node))
+
+        print(maiores)
+        return min(maiores)
+
     def coef_local(self, u):
 
         adj = self.retorna_adjacentes(u)
@@ -413,33 +445,89 @@ class Grafo:
         return vertice, maior
 
     def betweenness_centrality(self):
-        pass
+        target = "A"
+
+        bet = {}
+        list_paths = []
+        for node in self.estrutura:
+            if node != target:
+                lista, not_used, aux = self.dijkstra(node)
+                all_multiple_paths = []
+                for path in aux:
+                    if path[-1] != target:
+                        all_multiple_paths.append(path)
+
+                cost = {}
+                for k, v in lista.items():
+                    if v[1] != '-' and k != target:
+                        cost[k] = v
+
+                for k,v in cost.items():
+                    shortest_path = [k]
+                    atual = lista[k][1]
+                    shortest_path.append(atual)
+
+                    while(atual != '-'):
+                        atual = lista[atual][1]
+                        if atual != '-':
+                            shortest_path.append(atual)
+
+                    shortest_path.reverse()
+                    aux = shortest_path
+                    aux.sort()
+                    if aux not in list_paths:
+                        if shortest_path[0] != target:
+                            list_paths.append(shortest_path)
+                aux = []
+                for x in all_multiple_paths:
+                    x.sort()
+                    aux.append(x)
+
+
+                for x in range(len(aux)):
+
+                    if aux[x] not in list_paths:
+                        list_paths = list_paths + all_multiple_paths
+
+        for path in list_paths:
+            pair = [path[0], path[-1]]
+            pair.sort()
+            if pair[0] + pair[1] not in bet.keys():
+                if target in path:
+                    bet[pair[0] + pair[1]] = [1, 1]
+                else:
+                    bet[pair[0] + pair[1]] = [0, 1]
+            else:
+                print(f"PAIR {pair[0]}+{pair[1]}")
+                bet[pair[0] + pair[1]][1] = bet[pair[0] + pair[1]][1] + 1
+        #print(list_paths)
+
+        print(f"list_paths: {bet}")
+
 G = Grafo(direcionado= False, ponderado = False)
 
-# G.adiciona_vertice('A')
-# G.adiciona_vertice('B')
-# G.adiciona_vertice('C')
-# G.adiciona_vertice('D')
-# G.adiciona_vertice('E')
-# G.adiciona_vertice('F')
-# G.adiciona_vertice('G')
-#
-# G.adiciona_aresta('A','D')
-# G.adiciona_aresta('A','C')
-# G.adiciona_aresta('A','F')
-#
-# G.adiciona_aresta('B','E')
-# G.adiciona_aresta('B','F')
-#
-# G.adiciona_aresta('C','G')
-# G.adiciona_aresta('C','D')
-# G.adiciona_aresta('C','E')
-#
-# G.adiciona_aresta('D','C')
-#
-# G.adiciona_aresta('E','F')
+G = Grafo(direcionado= False, ponderado = False)
 
-G.random_graph_NM(2000,5000)
+G.adiciona_vertice('A')
+G.adiciona_vertice('B')
+G.adiciona_vertice('C')
+G.adiciona_vertice('D')
+G.adiciona_vertice('E')
+
+
+G.adiciona_aresta('A','B')
+G.adiciona_aresta('A','E')
+
+G.adiciona_aresta('B','C')
+G.adiciona_aresta('B','D')
+G.adiciona_aresta('C','D')
+G.adiciona_aresta('C','E')
+
+G.adiciona_aresta('D','E')
+
+
+
+#G.random_graph_NM(2000,5000)
 #G.imprime()
 #print(f"Coeficiente de Agrupamento Médio: {G.coef_local_medio()}")
 #print(len(G.estrutura))
@@ -453,11 +541,11 @@ G.random_graph_NM(2000,5000)
 # plt.xlabel("")
 # plt.ylabel("")
 # plt.show()
-menores = G.menores_caminhos()
-plt.hist(menores)
-plt.xlabel("")
-plt.ylabel("")
-plt.show()
+# menores = G.menores_caminhos()
+# plt.hist(menores)
+# plt.xlabel("")
+# plt.ylabel("")
+# plt.show()
 
 
-#print(G.closeness_centrality())
+print(G.betweenness_centrality())
