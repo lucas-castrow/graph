@@ -8,10 +8,12 @@ class Grafo:
         self.estrutura = defaultdict(list)
         self.direcionado = direcionado
         self.ponderado = ponderado
+        self.N = 0
 
     def adiciona_vertice(self, u):
         if u not in self.estrutura:
             self.estrutura[u] = []
+            self.N += 1
 
     def adiciona_aresta(self, u, v, peso=1):
         if self.ponderado:
@@ -117,9 +119,10 @@ class Grafo:
                         atual = cost[current_node][1]
                         multiple_path.append(atual)
 
-                        while(atual != source_node):
+                        while(atual != '-'):
                             atual = cost[atual][1]
-                            multiple_path.append(atual)
+                            if atual != '-':
+                                multiple_path.append(atual)
 
                         multiple_path.reverse()
                         all_multiple_paths.append(multiple_path)
@@ -444,17 +447,17 @@ class Grafo:
 
         return vertice, maior
 
-    def betweenness_centrality(self):
-        target = "A"
+    def betweenness_centrality(self, target):
 
         bet = {}
         list_paths = []
         for node in self.estrutura:
             if node != target:
                 lista, not_used, aux = self.dijkstra(node)
+
                 all_multiple_paths = []
                 for path in aux:
-                    if path[-1] != target:
+                    if path[-1] != target and path[0] == node:
                         all_multiple_paths.append(path)
 
                 cost = {}
@@ -471,23 +474,28 @@ class Grafo:
                         atual = lista[atual][1]
                         if atual != '-':
                             shortest_path.append(atual)
-
+                   # print(shortest_path)
+                    shortest_path_principal = shortest_path.copy()
                     shortest_path.reverse()
-                    aux = shortest_path
+
+                    aux = shortest_path.copy()
                     aux.sort()
-                    if aux not in list_paths:
-                        if shortest_path[0] != target:
-                            list_paths.append(shortest_path)
+                    if aux not in list_paths and shortest_path not in list_paths and shortest_path_principal not in list_paths:
+                        list_paths.append(shortest_path)
                 aux = []
                 for x in all_multiple_paths:
-                    x.sort()
-                    aux.append(x)
+                    a = x.copy()
+                    aux.append(a)
 
+                reverse_multiple = []
 
+                for x in aux.copy():
+                    a = x.copy()
+                    a.reverse()
+                    reverse_multiple.append(a)
                 for x in range(len(aux)):
-
-                    if aux[x] not in list_paths:
-                        list_paths = list_paths + all_multiple_paths
+                    if aux[x] not in list_paths and reverse_multiple[x] not in list_paths and all_multiple_paths[x] not in list_paths:
+                        list_paths = list_paths + [all_multiple_paths[x]]
 
         for path in list_paths:
             pair = [path[0], path[-1]]
@@ -498,37 +506,48 @@ class Grafo:
                 else:
                     bet[pair[0] + pair[1]] = [0, 1]
             else:
-                print(f"PAIR {pair[0]}+{pair[1]}")
+                if target in path:
+                    bet[pair[0] + pair[1]][0] = bet[pair[0] + pair[1]][0] + 1
                 bet[pair[0] + pair[1]][1] = bet[pair[0] + pair[1]][1] + 1
-        #print(list_paths)
 
-        print(f"list_paths: {bet}")
+        calculo = 0
+        for v in bet.values():
+            calculo += v[0]/v[1]
+
+        return calculo/(((self.N-1)*(self.N-2))/2)
+
+    def maior_betweeneess_centrality(self):
+        lista = {}
+        for target in self.estrutura:
+            lista[target] = self.betweenness_centrality(target)
+
+        print(lista)
+
 
 G = Grafo(direcionado= False, ponderado = False)
-
-G = Grafo(direcionado= False, ponderado = False)
-
-G.adiciona_vertice('A')
-G.adiciona_vertice('B')
-G.adiciona_vertice('C')
-G.adiciona_vertice('D')
-G.adiciona_vertice('E')
-
-
-G.adiciona_aresta('A','B')
-G.adiciona_aresta('A','E')
-
-G.adiciona_aresta('B','C')
-G.adiciona_aresta('B','D')
-G.adiciona_aresta('C','D')
-G.adiciona_aresta('C','E')
-
-G.adiciona_aresta('D','E')
-
+# #
+# G.adiciona_vertice('A')
+# G.adiciona_vertice('B')
+# G.adiciona_vertice('C')
+# G.adiciona_vertice('D')
+# G.adiciona_vertice('E')
+#
+#
+# G.adiciona_aresta('A','B')
+# G.adiciona_aresta('A','E')
+#
+# G.adiciona_aresta('B','C')
+# G.adiciona_aresta('B','D')
+# G.adiciona_aresta('C','D')
+# G.adiciona_aresta('C','E')
+#
+# G.adiciona_aresta('D','E')
+#
 
 
-#G.random_graph_NM(2000,5000)
-#G.imprime()
+G.random_graph_NM(5000,10000)
+
+G.imprime()
 #print(f"Coeficiente de Agrupamento Médio: {G.coef_local_medio()}")
 #print(len(G.estrutura))
 #print(f"arestas = {G.size_arestas()}")
@@ -548,4 +567,4 @@ G.adiciona_aresta('D','E')
 # plt.show()
 
 
-print(G.betweenness_centrality())
+print(G.maior_betweeneess_centrality())
