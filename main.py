@@ -516,6 +516,66 @@ class Grafo:
 
         return calculo/(((self.N-1)*(self.N-2))/2)
 
+                            #15  20
+    def scale_free_model(self, n, m):
+        G = Grafo(direcionado=False, ponderado=False)
+
+        G.adiciona_vertice('1')
+        G.adiciona_vertice('2')
+        G.adiciona_vertice('3')
+        G.adiciona_vertice('4')
+        G.adiciona_vertice('5')
+
+        G.adiciona_aresta('1', '2')
+        G.adiciona_aresta('2', '3')
+        G.adiciona_aresta('2', '4')
+        G.adiciona_aresta('3', '5')
+        G.adiciona_aresta('3', '4')
+        G.adiciona_aresta('4', '5')
+
+
+        while G.N < n:
+            print(f'CONT: {G.N}')
+            G.barabasi(G, 5, 5)
+
+        return G
+
+    def check_probability(self):
+        p = {}
+        for node in self.estrutura:
+            if node != str(G.N):
+                grau = self.grau(node)
+                p[node] = grau/10
+
+        return p
+
+
+    def barabasi(self, G, n0, m0, k=3):
+        contador = 0
+
+        while contador < n0:
+            k_contador = 0
+            G.adiciona_vertice(f"{G.N+1}")
+
+            p_all = G.check_probability()
+            p_all = dict(sorted(p_all.items(), key=lambda item: item[1], reverse=True))
+
+            #print(p_all)
+
+            while k_contador < k:
+
+                if len(p_all) > 0:
+                    number = np.random.random()
+                    key = list(p_all.keys())[0]
+                    p = p_all.pop(key)
+
+                    if number < p:
+                        G.adiciona_aresta(f"{G.N}",key)
+                        k_contador += 1
+
+            contador += 1
+
+
     def maior_betweeneess_centrality(self):
         lista = {}
         for target in self.estrutura:
@@ -525,29 +585,16 @@ class Grafo:
 
 
 G = Grafo(direcionado= False, ponderado = False)
-# #
-# G.adiciona_vertice('A')
-# G.adiciona_vertice('B')
-# G.adiciona_vertice('C')
-# G.adiciona_vertice('D')
-# G.adiciona_vertice('E')
-#
-#
-# G.adiciona_aresta('A','B')
-# G.adiciona_aresta('A','E')
-#
-# G.adiciona_aresta('B','C')
-# G.adiciona_aresta('B','D')
-# G.adiciona_aresta('C','D')
-# G.adiciona_aresta('C','E')
-#
-# G.adiciona_aresta('D','E')
-#
 
 
-G.random_graph_NM(5000,10000)
+X = G.scale_free_model(15,20)
 
-G.imprime()
+X.imprime()
+
+
+
+#G.random_graph_NM(5000,10000)
+
 #print(f"Coeficiente de Agrupamento Médio: {G.coef_local_medio()}")
 #print(len(G.estrutura))
 #print(f"arestas = {G.size_arestas()}")
@@ -565,6 +612,3 @@ G.imprime()
 # plt.xlabel("")
 # plt.ylabel("")
 # plt.show()
-
-
-print(G.maior_betweeneess_centrality())
