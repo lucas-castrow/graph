@@ -557,11 +557,11 @@ class Grafo:
             k_contador = 0
             G.adiciona_vertice(f"{G.N+1}")
 
+
+
+            #print(f'N: {G.N} {p_all}')
             p_all = G.check_probability()
             p_all = dict(sorted(p_all.items(), key=lambda item: item[1], reverse=True))
-
-            #print(p_all)
-
             while k_contador < k:
 
                 if len(p_all) > 0:
@@ -572,6 +572,9 @@ class Grafo:
                     if number < p:
                         G.adiciona_aresta(f"{G.N}",key)
                         k_contador += 1
+                else:
+                    p_all = G.check_probability()
+                    p_all = dict(sorted(p_all.items(), key=lambda item: item[1], reverse=True))
 
             contador += 1
 
