@@ -361,7 +361,7 @@ class Grafo:
     def size_arestas(self):
         soma = 0
         for x in self.estrutura:
-            soma += len(G.retorna_adjacentes(x))
+            soma += len(self.retorna_adjacentes(x))
         return soma
 
     def get_all_degrees(self):
@@ -536,46 +536,47 @@ class Grafo:
 
         while G.N < n:
             print(f'CONT: {G.N}')
-            G.barabasi(G, 5, 5)
+            G.barabasi(G, 500, 2)
 
         return G
 
     def check_probability(self):
         p = {}
+        degrees = {aux: self.grau(aux) for aux in self.estrutura}
+        last = list(degrees.keys())[-1]
+        degrees.pop(last)
         for node in self.estrutura:
-            if node != str(G.N):
-                grau = self.grau(node)
-                p[node] = grau/10
+            if node != str(self.N):
+                p[node] = float (degrees[node]) / sum(degrees.values())
 
-        return p
+        node_probabilities = {}
+        prev = 0
+        for n, px in p.items():
+            node_probabilities[n] = prev+px
+            prev += px
+
+        #print(node_probabilities)
+        return node_probabilities
 
 
-    def barabasi(self, G, n0, m0, k=3):
+    def barabasi(self, G, n0, k=2):
         contador = 0
 
         while contador < n0:
             k_contador = 0
             G.adiciona_vertice(f"{G.N+1}")
 
-
-
-            #print(f'N: {G.N} {p_all}')
             p_all = G.check_probability()
             p_all = dict(sorted(p_all.items(), key=lambda item: item[1], reverse=True))
             while k_contador < k:
 
-                if len(p_all) > 0:
-                    number = np.random.random()
+                    number = random.random()
                     key = list(p_all.keys())[0]
                     p = p_all.pop(key)
 
                     if number < p:
                         G.adiciona_aresta(f"{G.N}",key)
                         k_contador += 1
-                else:
-                    p_all = G.check_probability()
-                    p_all = dict(sorted(p_all.items(), key=lambda item: item[1], reverse=True))
-
             contador += 1
 
 
@@ -590,10 +591,10 @@ class Grafo:
 G = Grafo(direcionado= False, ponderado = False)
 
 
-X = G.scale_free_model(15,20)
+X = G.scale_free_model(5000,10000)
 
 X.imprime()
-
+print(X.size_arestas())
 
 
 #G.random_graph_NM(5000,10000)
