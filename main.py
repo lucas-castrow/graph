@@ -52,10 +52,13 @@ class Grafo:
 
     def peso(self, u, v):
         for i in self.estrutura[u]:
-            nome = i[0]
-            if nome == v:
-                peso = i[1]
-                print(peso)
+            if not self.ponderado:
+                if i == v:
+                    return 1
+            else:
+                nome = i[0]
+                if nome == v:
+                    return i[1]
         return False
 
     def sao_conectados(self, u, v):
@@ -75,11 +78,23 @@ class Grafo:
         maior = np.inf
         minIndex = 0
 
+        self.imprime()
         for v in self.estrutura:
             if cost[v][0] < maior and v not in visited:
                 maior = cost[v][0]
                 minIndex = v
         return str(minIndex)
+
+    def MinDistance(self, cost, visited):
+        maior = np.inf
+        print(cost)
+
+        for k,v in cost.items():
+            print(f'{v[0]} < {maior}')
+            if v[0] < maior and v not in visited:
+                maior = v[0]
+                minIndex = k
+        return np.inf if maior == np.inf else minIndex
 
     def retorna_vizinhos(self, node):
         aux = []
@@ -136,6 +151,7 @@ class Grafo:
 
             visited.append(current_node)
             current_node = self.minDist(cost, visited)
+            print(current_node)
 
         result = []
         for x in cost.values():
@@ -533,10 +549,11 @@ class Grafo:
         G.adiciona_aresta('3', '4')
         G.adiciona_aresta('4', '5')
 
-
+        n -= G.N
+        m -= G.size_arestas()
         while G.N < n:
             print(f'CONT: {G.N}')
-            G.barabasi(G, 500, 2)
+            G.barabasi(G, n, 2)
 
         return G
 
@@ -567,14 +584,16 @@ class Grafo:
             G.adiciona_vertice(f"{G.N+1}")
 
             p_all = G.check_probability()
-            p_all = dict(sorted(p_all.items(), key=lambda item: item[1], reverse=True))
+            #p_all = dict(sorted(p_all.items(), key=lambda item: item[1], reverse=True))
             while k_contador < k:
 
                     number = random.random()
                     key = list(p_all.keys())[0]
+                    print(p_all)
                     p = p_all.pop(key)
 
                     if number < p:
+                        print(f'{number} < {p} [{key}]')
                         G.adiciona_aresta(f"{G.N}",key)
                         k_contador += 1
             contador += 1
@@ -587,14 +606,40 @@ class Grafo:
 
         print(lista)
 
+    def read_pajek_files(self):
+        pass
+
+    def write_pajek_file(self):
+        f = open("barabasi_pajek.net", "w")
+
+        with f as line:
+            line.write(f'*Vertices  {self.N} \n')
+            count = 1
+            line_key = {}
+            for vertice in self.estrutura:
+                line.write(f'{count} {vertice}\n')
+                line_key[vertice] = count
+                count += 1
+
+            line.write(f'*Arcs\n')
+            line.write(f'*Edges\n')
+            for vertice in self.estrutura:
+                for adjacent in self.retorna_adjacentes(vertice):
+                    line.write(f'{str(line_key[vertice])} {(line_key[adjacent])} {self.peso(vertice, adjacent)}\n')
 
 G = Grafo(direcionado= False, ponderado = False)
 
-
-X = G.scale_free_model(5000,10000)
-
+X = G.scale_free_model(50,100)
 X.imprime()
-print(X.size_arestas())
+
+print(X.radius())
+
+X.write_pajek_file()
+
+#X = G.scale_free_model(5000,10000)
+
+#X.imprime()
+#print(X.size_arestas())
 
 
 #G.random_graph_NM(5000,10000)
