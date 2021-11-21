@@ -81,8 +81,11 @@ class Grafo:
         self.imprime()
         for v in self.estrutura:
             if cost[v][0] < maior and v not in visited:
+                print(f'{cost[v][0]}   -   {maior} - V[{v}]')
                 maior = cost[v][0]
                 minIndex = v
+
+
         return str(minIndex)
 
     def MinDistance(self, cost, visited):
@@ -124,6 +127,7 @@ class Grafo:
         cost[source_node][0] = 0
         current_node = source_node
         while len(visited) < len(self.estrutura):
+            print(f'LENVI: {len(visited)} LENEST: {len(self.estrutura)}')
             adjacent_nodes = self.retorna_adjacentes(current_node)
             for ind in range(len(adjacent_nodes)):
                 if adjacent_nodes[ind][0] not in visited:
@@ -150,7 +154,10 @@ class Grafo:
 
 
             visited.append(current_node)
+            print(cost)
+            #aux = self.minDist(cost, visited)
             current_node = self.minDist(cost, visited)
+
             print(current_node)
 
         result = []
@@ -378,7 +385,7 @@ class Grafo:
         soma = 0
         for x in self.estrutura:
             soma += len(self.retorna_adjacentes(x))
-        return soma
+        return soma/2
 
     def get_all_degrees(self):
         degrees = []
@@ -388,10 +395,10 @@ class Grafo:
         return degrees
 
     def eccentricity(self,u):
-        lista = self.dijkstra(u)[0]
-        menores_caminhos = [k[0] for k in lista.values()]
-        print(max(menores_caminhos))
-        return max(menores_caminhos)
+        lista = self.dijsktra2(u)[1]
+        #menores_caminhos = [k[0] for k in lista.values()]
+        #print(max(lista))
+        return max(lista)
 
     def diameter(self):
         maiores = []
@@ -549,8 +556,6 @@ class Grafo:
         G.adiciona_aresta('3', '4')
         G.adiciona_aresta('4', '5')
 
-        n -= G.N
-        m -= G.size_arestas()
         while G.N < n:
             print(f'CONT: {G.N}')
             G.barabasi(G, n, 2)
@@ -589,11 +594,9 @@ class Grafo:
 
                     number = random.random()
                     key = list(p_all.keys())[0]
-                    print(p_all)
                     p = p_all.pop(key)
 
                     if number < p:
-                        print(f'{number} < {p} [{key}]')
                         G.adiciona_aresta(f"{G.N}",key)
                         k_contador += 1
             contador += 1
@@ -609,6 +612,39 @@ class Grafo:
     def read_pajek_files(self):
         pass
 
+    def dijsktra2(self, initial):
+        visited = {initial: 0}
+        path = {}
+
+        nodes = set(self.estrutura)
+
+        while nodes:
+            min_node = None
+            for node in nodes:
+                if node in visited:
+                    if min_node is None:
+                        min_node = node
+                    elif visited[node] < visited[min_node]:
+                        min_node = node
+
+            if min_node is None:
+                break
+
+            nodes.remove(min_node)
+            current_weight = visited[min_node]
+
+            for edge in self.retorna_adjacentes(min_node):
+                weight = current_weight + 1
+                if edge not in visited or weight < visited[edge]:
+                    visited[edge] = weight
+                    path[edge] = min_node
+
+            result = []
+            print(visited)
+            for x in visited.values():
+                if x != 0:
+                    result.append(x)
+        return visited, result, path
     def write_pajek_file(self):
         f = open("barabasi_pajek.net", "w")
 
@@ -629,12 +665,16 @@ class Grafo:
 
 G = Grafo(direcionado= False, ponderado = False)
 
-X = G.scale_free_model(50,100)
+
+X = G.scale_free_model(100,500)
 X.imprime()
-
 print(X.radius())
+print(X.diameter())
+print(f'DEGREES {sum(X.get_all_degrees())/len(X.get_all_degrees())}')
 
-X.write_pajek_file()
+#print(sum(X.get_all_degrees())/len((X.get_all_degrees())))
+
+#X.write_pajek_file()
 
 #X = G.scale_free_model(5000,10000)
 
