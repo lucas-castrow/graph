@@ -76,17 +76,19 @@ class Grafo:
 
     def minDist(self, cost, visited):
         maior = np.inf
-        minIndex = 0
+        minIndex = None
 
         self.imprime()
         for v in self.estrutura:
+            if minIndex == None:
+                minIndex = v
             if cost[v][0] < maior and v not in visited:
                 print(f'{cost[v][0]}   -   {maior} - V[{v}]')
                 maior = cost[v][0]
                 minIndex = v
 
 
-        return str(minIndex)
+        return None if minIndex == None else str(minIndex)
 
     def MinDistance(self, cost, visited):
         maior = np.inf
@@ -156,8 +158,11 @@ class Grafo:
             visited.append(current_node)
             print(cost)
             #aux = self.minDist(cost, visited)
-            current_node = self.minDist(cost, visited)
 
+            current_node = self.minDist(cost, visited)
+            if current_node is None:
+                print('\n\n\n\n\nentrou')
+                break
             print(current_node)
 
         result = []
@@ -165,7 +170,7 @@ class Grafo:
             if x[0] != np.inf:
                 if x[0] != 0 and x[1] != 0:
                     result.append(x[0])
-
+        print(cost)
         return cost,result, all_multiple_paths
 
     # em implementacao
@@ -395,17 +400,17 @@ class Grafo:
         return degrees
 
     def eccentricity(self,u):
-        lista = self.dijsktra2(u)[1]
-        #menores_caminhos = [k[0] for k in lista.values()]
-        #print(max(lista))
-        return max(lista)
+        lista = self.dijsktra2(u)[0]
+        menores_caminhos = [k for k in lista.values()]
+        #print(max(menores_caminhos))
+        return max(menores_caminhos)
 
     def diameter(self):
         maiores = []
         for node in self.estrutura:
             maiores.append(self.eccentricity(node))
 
-        print(maiores)
+        #print(maiores)
         return max(maiores)
 
     def radius(self):
@@ -615,7 +620,7 @@ class Grafo:
     def dijsktra2(self, initial):
         visited = {initial: 0}
         path = {}
-
+        list_path = {}
         nodes = set(self.estrutura)
 
         while nodes:
@@ -634,16 +639,34 @@ class Grafo:
             current_weight = visited[min_node]
 
             for edge in self.retorna_adjacentes(min_node):
-                weight = current_weight + 1
+                if self.ponderado:
+                    weight = current_weight + self.peso(min_node, edge)
+                else:
+                    weight = current_weight + 1
                 if edge not in visited or weight < visited[edge]:
                     visited[edge] = weight
                     path[edge] = min_node
 
-            result = []
-            print(visited)
-            for x in visited.values():
-                if x != 0:
-                    result.append(x)
+        result = []
+        #print(visited)
+        #print(path)
+        list_path = {}
+
+        for node, value in path.items():
+            list_path[node] = [value]
+
+        for node, value in path.items():
+
+            if value != initial:
+                target = value
+                while target != initial:
+                    list_path[node].append(path[target])
+                    target = path[target]
+
+        #print(list_path)
+        for x in visited.values():
+            if x != 0:
+                result.append(x)
         return visited, result, path
     def write_pajek_file(self):
         f = open("barabasi_pajek.net", "w")
@@ -665,16 +688,30 @@ class Grafo:
 
 G = Grafo(direcionado= False, ponderado = False)
 
-
+# G.adiciona_vertice('A')
+# G.adiciona_vertice('B')
+# G.adiciona_vertice('C')
+# G.adiciona_vertice('D')
+# G.adiciona_vertice('E')
+# G.adiciona_vertice('F')
+#
+#
+# G.adiciona_aresta('A', 'B')
+# G.adiciona_aresta('B', 'C')
+# G.adiciona_aresta('B', 'E')
+# G.adiciona_aresta('B', 'D')
+# G.adiciona_aresta('C', 'F')
+# G.adiciona_aresta('D', 'E')
+# G.adiciona_aresta('E', 'F')
 X = G.scale_free_model(100,500)
 X.imprime()
-print(X.radius())
-print(X.diameter())
+print(f'RADIUS {X.radius()}')
+print(f'Diameter: {X.diameter()}')
 print(f'DEGREES {sum(X.get_all_degrees())/len(X.get_all_degrees())}')
 
 #print(sum(X.get_all_degrees())/len((X.get_all_degrees())))
 
-#X.write_pajek_file()
+X.write_pajek_file()
 
 #X = G.scale_free_model(5000,10000)
 
