@@ -147,9 +147,7 @@ class Grafo:
 
                         multiple_path.reverse()
                         all_multiple_paths.append(multiple_path)
-                    # if ind not in cost:
-                    #     cost[adjacent_nodes[ind][0]][0] = accumulated
-                    #     cost[adjacent_nodes[ind][0]][1] = current_node
+
                     if accumulated < cost[adjacent_nodes[ind][0]][0]:
                         cost[adjacent_nodes[ind][0]][0] = accumulated
                         cost[adjacent_nodes[ind][0]][1] = current_node
@@ -594,15 +592,22 @@ class Grafo:
             G.adiciona_vertice(f"{G.N+1}")
 
             p_all = G.check_probability()
-            #p_all = dict(sorted(p_all.items(), key=lambda item: item[1], reverse=True))
+            aux = p_all.copy()
+            linkeds = []
             while k_contador < k:
 
                     number = random.random()
-                    key = list(p_all.keys())[0]
-                    p = p_all.pop(key)
+
+                    key = list(aux.keys())[0]
+                    p = aux.pop(key)
 
                     if number < p:
                         G.adiciona_aresta(f"{G.N}",key)
+                        linkeds.append(key)
+                        aux = p_all.copy()
+                        #delete nodes that already has connection to last node
+                        for linked in linkeds:
+                            aux.pop(linked)
                         k_contador += 1
             contador += 1
 
@@ -620,7 +625,6 @@ class Grafo:
     def dijsktra2(self, initial):
         visited = {initial: 0}
         path = {}
-        list_path = {}
         nodes = set(self.estrutura)
 
         while nodes:
@@ -667,7 +671,10 @@ class Grafo:
         for x in visited.values():
             if x != 0:
                 result.append(x)
-        return visited, result, path
+        return visited, result, path, list_path
+
+    def mean_degree(self):
+        return sum(X.get_all_degrees())/len(X.get_all_degrees())
     def write_pajek_file(self):
         f = open("barabasi_pajek.net", "w")
 
@@ -688,26 +695,11 @@ class Grafo:
 
 G = Grafo(direcionado= False, ponderado = False)
 
-# G.adiciona_vertice('A')
-# G.adiciona_vertice('B')
-# G.adiciona_vertice('C')
-# G.adiciona_vertice('D')
-# G.adiciona_vertice('E')
-# G.adiciona_vertice('F')
-#
-#
-# G.adiciona_aresta('A', 'B')
-# G.adiciona_aresta('B', 'C')
-# G.adiciona_aresta('B', 'E')
-# G.adiciona_aresta('B', 'D')
-# G.adiciona_aresta('C', 'F')
-# G.adiciona_aresta('D', 'E')
-# G.adiciona_aresta('E', 'F')
 X = G.scale_free_model(100,500)
 X.imprime()
 print(f'RADIUS {X.radius()}')
 print(f'Diameter: {X.diameter()}')
-print(f'DEGREES {sum(X.get_all_degrees())/len(X.get_all_degrees())}')
+print(f'DEGREES {X.mean_degree()}')
 
 #print(sum(X.get_all_degrees())/len((X.get_all_degrees())))
 
