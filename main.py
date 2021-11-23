@@ -398,9 +398,8 @@ class Grafo:
         return degrees
 
     def eccentricity(self,u):
-        lista = self.dijsktra2(u)[0]
-        menores_caminhos = [k for k in lista.values()]
-        #print(max(menores_caminhos))
+        lista, menores_caminhos, path, list_path = self.dijsktra2(u)
+        print(f'Menores: {u}, {lista}')
         return max(menores_caminhos)
 
     def diameter(self):
@@ -415,6 +414,7 @@ class Grafo:
         maiores = []
         for node in self.estrutura:
             maiores.append(self.eccentricity(node))
+
 
         print(maiores)
         return min(maiores)
@@ -439,9 +439,8 @@ class Grafo:
         else:
             return 0
 
-
+    #Average Clustering Coefficient:
     def coef_local_medio(self):
-        N = len(self.estrutura)
 
         soma = 0
         for x in self.estrutura:
@@ -449,7 +448,7 @@ class Grafo:
             print(f"Coeficiente de Agrupamento Local de {x}: {coef_local}")
             soma += coef_local
 
-        result = (1/N) * soma
+        result = (1/self.N) * soma
         return result
 
     def menores_caminhos(self):
@@ -544,26 +543,23 @@ class Grafo:
 
                             #15  20
     def scale_free_model(self, n, m):
-        G = Grafo(direcionado=False, ponderado=False)
 
-        G.adiciona_vertice('1')
-        G.adiciona_vertice('2')
-        G.adiciona_vertice('3')
-        G.adiciona_vertice('4')
-        G.adiciona_vertice('5')
+        self.adiciona_vertice('1')
+        self.adiciona_vertice('2')
+        self.adiciona_vertice('3')
+        self.adiciona_vertice('4')
+        self.adiciona_vertice('5')
 
-        G.adiciona_aresta('1', '2')
-        G.adiciona_aresta('2', '3')
-        G.adiciona_aresta('2', '4')
-        G.adiciona_aresta('3', '5')
-        G.adiciona_aresta('3', '4')
-        G.adiciona_aresta('4', '5')
+        self.adiciona_aresta('1', '2')
+        self.adiciona_aresta('2', '3')
+        self.adiciona_aresta('2', '4')
+        self.adiciona_aresta('3', '5')
+        self.adiciona_aresta('3', '4')
+        self.adiciona_aresta('4', '5')
 
-        while G.N < n:
-            print(f'CONT: {G.N}')
-            G.barabasi(G, n, 2)
-
-        return G
+        while self.N < n:
+            print(f'CONT: {self.N}')
+            self.barabasi(G, n, 2)
 
     def check_probability(self):
         p = {}
@@ -652,8 +648,6 @@ class Grafo:
                     path[edge] = min_node
 
         result = []
-        #print(visited)
-        #print(path)
         list_path = {}
 
         for node, value in path.items():
@@ -674,7 +668,7 @@ class Grafo:
         return visited, result, path, list_path
 
     def mean_degree(self):
-        return sum(X.get_all_degrees())/len(X.get_all_degrees())
+        return sum(self.get_all_degrees())/len(self.get_all_degrees())
     def write_pajek_file(self):
         f = open("barabasi_pajek.net", "w")
 
@@ -683,7 +677,7 @@ class Grafo:
             count = 1
             line_key = {}
             for vertice in self.estrutura:
-                line.write(f'{count} {vertice}\n')
+                line.write(f'{count} "{vertice}"\n')
                 line_key[vertice] = count
                 count += 1
 
@@ -693,18 +687,76 @@ class Grafo:
                 for adjacent in self.retorna_adjacentes(vertice):
                     line.write(f'{str(line_key[vertice])} {(line_key[adjacent])} {self.peso(vertice, adjacent)}\n')
 
+    def read_pajek_file(self, file):
+        path = open(file, "r")
+        isVertices = False
+        isEdges = False
+        isArcs = False
+        dict_index = {}
+        try:
+            with path as f:
+                line = f.readline()
+                while line:
+                    split = line.split()
+                    ##if len(split) > 0:
+                    if split[0] == '*Vertices':
+                        #print(split[0].upper())
+                        line = f.readline()
+                        split = line.split()
+                        isVertices = True
+                    if split[0].upper() == '*ARCS' or split[0].upper() == '*ARCSLIST':
+                        isArcs = True
+                        isVertices = False
+                        line = f.readline()
+                        split = line.split()
+                    if split[0].upper() == '*EDGES' or split[0].upper() == '*EDGESLIST':
+                        isEdges = True
+                        isArcs = False
+                        line = f.readline()
+
+                    if isVertices and not isEdges and not isArcs:
+                        vertice_split = line.split()
+                        node = ""
+
+                        for word in vertice_split[1:]:
+                            node += word
+                        dict_index[vertice_split[0]] = node
+                        self.adiciona_vertice(node)
+                        #print(node)
+                    elif isEdges and not isVertices and not isArcs:
+                        edges_split = line.split()
+
+                        for edge in edges_split[1:]:
+                            #print(f'DICT {dict_index[edges_split[0]]}')
+                            self.adiciona_aresta(dict_index[edges_split[0]], dict_index[edge])
+
+                    line = f.readline()
+
+                        #if isVertices:
+                            #print(line.split())
+                           #self.adiciona_vertice(line)
+
+        except IOError:
+            return ''
+        pass
 G = Grafo(direcionado= False, ponderado = False)
+#
+G.scale_free_model(100,500)
+G.imprime()
+print(f'RADIUS {G.radius()}')
+print(f'Diameter: {G.diameter()}')
+print(f'DEGREES {G.mean_degree()}')
+# print(f'Coef Local Medio: {X.coef_local_medio()}')
+# #print(sum(X.get_all_degrees())/len((X.get_all_degrees())))
 
-X = G.scale_free_model(100,500)
-X.imprime()
-print(f'RADIUS {X.radius()}')
-print(f'Diameter: {X.diameter()}')
-print(f'DEGREES {X.mean_degree()}')
-
-#print(sum(X.get_all_degrees())/len((X.get_all_degrees())))
-
-X.write_pajek_file()
-
+# G.read_pajek_file('erdos.net')
+# G.imprime()
+# print(G.size_arestas())
+# print(G.N)
+# print(f'RADIUS {G.radius()}')
+# print(f'Diameter: {G.diameter()}')
+# print(f'DEGREES {G.mean_degree()}')
+# print(f'Coef Local Medio: {G.coef_local_medio()}')
 #X = G.scale_free_model(5000,10000)
 
 #X.imprime()
