@@ -412,8 +412,12 @@ class Grafo:
 
     def radius(self):
         maiores = []
+        count = 1
         for node in self.estrutura:
+            print(f'to em: {node}')
+            print(f'N: {count}')
             maiores.append(self.eccentricity(node))
+            count+=1
 
 
         print(maiores)
@@ -615,8 +619,6 @@ class Grafo:
 
         print(lista)
 
-    def read_pajek_files(self):
-        pass
 
     def dijsktra2(self, initial):
         visited = {initial: 0}
@@ -720,14 +722,17 @@ class Grafo:
 
                         for word in vertice_split[1:]:
                             node += word
+
+                        aux = node.split('"')
+                        node = ""
+                        for word in aux:
+                            node += word
                         dict_index[vertice_split[0]] = node
                         self.adiciona_vertice(node)
-                        #print(node)
                     elif isEdges and not isVertices and not isArcs:
                         edges_split = line.split()
 
                         for edge in edges_split[1:]:
-                            #print(f'DICT {dict_index[edges_split[0]]}')
                             self.adiciona_aresta(dict_index[edges_split[0]], dict_index[edge])
 
                     line = f.readline()
@@ -741,19 +746,19 @@ class Grafo:
         pass
 G = Grafo(direcionado= False, ponderado = False)
 #
-G.scale_free_model(100,500)
-G.imprime()
-print(f'RADIUS {G.radius()}')
-print(f'Diameter: {G.diameter()}')
-print(f'DEGREES {G.mean_degree()}')
+#G.scale_free_model(100,500)
+#G.imprime()
+# print(f'RADIUS {G.radius()}')
+# print(f'Diameter: {G.diameter()}')
+# print(f'DEGREES {G.mean_degree()}')
 # print(f'Coef Local Medio: {X.coef_local_medio()}')
 # #print(sum(X.get_all_degrees())/len((X.get_all_degrees())))
 
-# G.read_pajek_file('erdos.net')
-# G.imprime()
-# print(G.size_arestas())
-# print(G.N)
-# print(f'RADIUS {G.radius()}')
+G.read_pajek_file('erdos.net')
+G.imprime()
+print(G.size_arestas())
+print(G.N)
+print(f'RADIUS {G.radius()}')
 # print(f'Diameter: {G.diameter()}')
 # print(f'DEGREES {G.mean_degree()}')
 # print(f'Coef Local Medio: {G.coef_local_medio()}')
