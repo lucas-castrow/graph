@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 
+
 class Grafo:
     def __init__(self, direcionado=False, ponderado=False):
         self.estrutura = defaultdict(list)
@@ -21,9 +22,9 @@ class Grafo:
             if not self.direcionado:
                 self.estrutura[v].append((u, peso))
         else:
-            self.estrutura[u].append((v))
+            self.estrutura[u].append(v)
             if not self.direcionado:
-                self.estrutura[v].append((u))
+                self.estrutura[v].append(u)
 
     def remove_aresta(self, u, v):
         if v in self.estrutura[u]:
@@ -80,21 +81,21 @@ class Grafo:
 
         self.imprime()
         for v in self.estrutura:
-            if minIndex == None:
+            if minIndex is None:
                 minIndex = v
             if cost[v][0] < maior and v not in visited:
                 print(f'{cost[v][0]}   -   {maior} - V[{v}]')
                 maior = cost[v][0]
                 minIndex = v
 
+        return None if minIndex is None else str(minIndex)
 
-        return None if minIndex == None else str(minIndex)
-
-    def MinDistance(self, cost, visited):
+    @staticmethod
+    def MinDistance(cost, visited):
         maior = np.inf
         print(cost)
-
-        for k,v in cost.items():
+        minIndex = 0
+        for k, v in cost.items():
             print(f'{v[0]} < {maior}')
             if v[0] < maior and v not in visited:
                 maior = v[0]
@@ -107,7 +108,8 @@ class Grafo:
             aux.append(i[0])
         return aux
 
-    def quantas_arestas(self, G):
+    @staticmethod
+    def quantas_arestas(G):
         soma = 0
         for x in G.estrutura:
             soma += len(G.retorna_adjacentes(x))
@@ -121,7 +123,7 @@ class Grafo:
         for x in self.estrutura:
             indices.append(x)
 
-        values = [[np.inf, '-'] for i in range(len(self.estrutura))]
+        values = [[np.inf, '-'] for _ in range(len(self.estrutura))]
         cost = {}
         for i in range(len(self.estrutura)):
             cost[indices[i]] = values[i]
@@ -135,12 +137,11 @@ class Grafo:
                 if adjacent_nodes[ind][0] not in visited:
                     accumulated = 1 + cost[current_node][0]
                     if accumulated == cost[adjacent_nodes[ind][0]][0]:
-                        multiple_path = [adjacent_nodes[ind]]
-                        multiple_path.append(current_node)
+                        multiple_path = [adjacent_nodes[ind], current_node]
                         atual = cost[current_node][1]
                         multiple_path.append(atual)
 
-                        while(atual != '-'):
+                        while atual != '-':
                             atual = cost[atual][1]
                             if atual != '-':
                                 multiple_path.append(atual)
@@ -152,10 +153,9 @@ class Grafo:
                         cost[adjacent_nodes[ind][0]][0] = accumulated
                         cost[adjacent_nodes[ind][0]][1] = current_node
 
-
             visited.append(current_node)
             print(cost)
-            #aux = self.minDist(cost, visited)
+            # aux = self.minDist(cost, visited)
 
             current_node = self.minDist(cost, visited)
             if current_node is None:
@@ -169,7 +169,7 @@ class Grafo:
                 if x[0] != 0 and x[1] != 0:
                     result.append(x[0])
         print(cost)
-        return cost,result, all_multiple_paths
+        return cost, result, all_multiple_paths
 
     # em implementacao
     def kruskal(self):
@@ -212,6 +212,7 @@ class Grafo:
 
             contador += 1
 
+    @property
     def prim(self):
         visited = []
         indices = []
@@ -221,7 +222,7 @@ class Grafo:
 
         # pega vertice aleatorio como comeco
         source_node = random.choice(indices)
-        values = [[np.inf, '-'] for i in range(len(self.estrutura))]
+        values = [[np.inf, '-'] for _ in range(len(self.estrutura))]
         cost = {}
         for i in range(len(self.estrutura)):
             cost[indices[i]] = values[i]
@@ -292,7 +293,7 @@ class Grafo:
 
             visiting.remove(node)
             visited.append(node)
-            if self.retorna_adjacentes(node) == []:
+            if not self.retorna_adjacentes(node):
                 trees.append([node])
             result.append(node)
 
@@ -380,15 +381,15 @@ class Grafo:
 
         while self.size_arestas() < m:
             x, y = np.random.randint(n), np.random.randint(n)
-            if x != y and not self.tem_aresta(f'{x}',f'{y}'):
+            if x != y and not self.tem_aresta(f'{x}', f'{y}'):
                 if x not in self.retorna_adjacentes(f'{y}'):
-                    self.adiciona_aresta(f'{x}',f'{y}')
+                    self.adiciona_aresta(f'{x}', f'{y}')
 
     def size_arestas(self):
         soma = 0
         for x in self.estrutura:
             soma += len(self.retorna_adjacentes(x))
-        return soma/2
+        return soma / 2
 
     def get_all_degrees(self):
         degrees = []
@@ -397,7 +398,7 @@ class Grafo:
 
         return degrees
 
-    def eccentricity(self,u):
+    def eccentricity(self, u):
         lista, menores_caminhos, path, list_path = self.dijsktra2(u)
         print(f'Menores: {u}, {lista}')
         return max(menores_caminhos)
@@ -407,7 +408,7 @@ class Grafo:
         for node in self.estrutura:
             maiores.append(self.eccentricity(node))
 
-        #print(maiores)
+        # print(maiores)
         return max(maiores)
 
     def radius(self):
@@ -417,8 +418,7 @@ class Grafo:
             print(f'to em: {node}')
             print(f'N: {count}')
             maiores.append(self.eccentricity(node))
-            count+=1
-
+            count += 1
 
         print(maiores)
         return min(maiores)
@@ -443,7 +443,7 @@ class Grafo:
         else:
             return 0
 
-    #Average Clustering Coefficient:
+    # Average Clustering Coefficient:
     def coef_local_medio(self):
 
         soma = 0
@@ -452,7 +452,7 @@ class Grafo:
             print(f"Coeficiente de Agrupamento Local de {x}: {coef_local}")
             soma += coef_local
 
-        result = (1/self.N) * soma
+        result = (1 / self.N) * soma
         return result
 
     def menores_caminhos(self):
@@ -469,7 +469,7 @@ class Grafo:
         vertice = ""
         N = len(self.estrutura)
         for x in self.estrutura:
-            closeness = (N-1) / sum(self.dijkstra(x)[1])
+            closeness = (N - 1) / sum(self.dijkstra(x)[1])
             if closeness > maior:
                 maior = closeness
                 vertice = x
@@ -494,22 +494,22 @@ class Grafo:
                     if v[1] != '-' and k != target:
                         cost[k] = v
 
-                for k,v in cost.items():
+                for k, v in cost.items():
                     shortest_path = [k]
                     atual = lista[k][1]
                     shortest_path.append(atual)
 
-                    while(atual != '-'):
+                    while atual != '-':
                         atual = lista[atual][1]
                         if atual != '-':
                             shortest_path.append(atual)
-                   # print(shortest_path)
+                    # print(shortest_path)
                     shortest_path_principal = shortest_path.copy()
                     shortest_path.reverse()
 
                     aux = shortest_path.copy()
                     aux.sort()
-                    if aux not in list_paths and shortest_path not in list_paths and shortest_path_principal not in list_paths:
+                    if aux not in list_paths and shortest_path not in list_paths and shortest_path_principal not in list_paths: # noqa
                         list_paths.append(shortest_path)
                 aux = []
                 for x in all_multiple_paths:
@@ -523,7 +523,7 @@ class Grafo:
                     a.reverse()
                     reverse_multiple.append(a)
                 for x in range(len(aux)):
-                    if aux[x] not in list_paths and reverse_multiple[x] not in list_paths and all_multiple_paths[x] not in list_paths:
+                    if aux[x] not in list_paths and reverse_multiple[x] not in list_paths and all_multiple_paths[x] not in list_paths: # noqa
                         list_paths = list_paths + [all_multiple_paths[x]]
 
         for path in list_paths:
@@ -541,11 +541,12 @@ class Grafo:
 
         calculo = 0
         for v in bet.values():
-            calculo += v[0]/v[1]
+            calculo += v[0] / v[1]
 
-        return calculo/(((self.N-1)*(self.N-2))/2)
+        return calculo / (((self.N - 1) * (self.N - 2)) / 2)
 
-                            #15  20
+        # 15  20
+
     def scale_free_model(self, n, m):
 
         self.adiciona_vertice('1')
@@ -572,45 +573,44 @@ class Grafo:
         degrees.pop(last)
         for node in self.estrutura:
             if node != str(self.N):
-                p[node] = float (degrees[node]) / sum(degrees.values())
+                p[node] = float(degrees[node]) / sum(degrees.values())
 
         node_probabilities = {}
         prev = 0
         for n, px in p.items():
-            node_probabilities[n] = prev+px
+            node_probabilities[n] = prev + px
             prev += px
 
-        #print(node_probabilities)
+        # print(node_probabilities)
         return node_probabilities
 
-
-    def barabasi(self, G, n0, k=2):
+    @staticmethod
+    def barabasi(G, n0, k=2):
         contador = 0
 
         while contador < n0:
             k_contador = 0
-            G.adiciona_vertice(f"{G.N+1}")
+            G.adiciona_vertice(f"{G.N + 1}")
 
             p_all = G.check_probability()
             aux = p_all.copy()
             linkeds = []
             while k_contador < k:
 
-                    number = random.random()
+                number = random.random()
 
-                    key = list(aux.keys())[0]
-                    p = aux.pop(key)
+                key = list(aux.keys())[0]
+                p = aux.pop(key)
 
-                    if number < p:
-                        G.adiciona_aresta(f"{G.N}",key)
-                        linkeds.append(key)
-                        aux = p_all.copy()
-                        #delete nodes that already has connection to last node
-                        for linked in linkeds:
-                            aux.pop(linked)
-                        k_contador += 1
+                if number < p:
+                    G.adiciona_aresta(f"{G.N}", key)
+                    linkeds.append(key)
+                    aux = p_all.copy()
+                    # delete nodes that already has connection to last node
+                    for linked in linkeds:
+                        aux.pop(linked)
+                    k_contador += 1
             contador += 1
-
 
     def maior_betweeneess_centrality(self):
         lista = {}
@@ -618,7 +618,6 @@ class Grafo:
             lista[target] = self.betweenness_centrality(target)
 
         print(lista)
-
 
     def dijsktra2(self, initial):
         visited = {initial: 0}
@@ -628,15 +627,17 @@ class Grafo:
         while nodes:
             min_node = None
             for node in nodes:
-                if node in visited:
-                    if min_node is None:
-                        min_node = node
-                    elif visited[node] < visited[min_node]:
-                        min_node = node
+                try:
+                    visited[node]
+                except KeyError:
+                    continue
+                if min_node is None:
+                    min_node = node
+                elif visited[node] < visited[min_node]:
+                    min_node = node
 
             if min_node is None:
                 break
-
             nodes.remove(min_node)
             current_weight = visited[min_node]
 
@@ -645,32 +646,33 @@ class Grafo:
                     weight = current_weight + self.peso(min_node, edge)
                 else:
                     weight = current_weight + 1
-                if edge not in visited or weight < visited[edge]:
+                try:
+                    visited[edge]
+                except KeyError:
                     visited[edge] = weight
                     path[edge] = min_node
-
-        result = []
-        list_path = {}
+                    continue
+                if weight < visited[edge]:
+                    visited[edge] = weight
+                    path[edge] = min_node
+        # print(visited)
+        # print(path)
+        list_path = {node: [value] for node, value in path.items()}
 
         for node, value in path.items():
-            list_path[node] = [value]
-
-        for node, value in path.items():
-
             if value != initial:
                 target = value
                 while target != initial:
                     list_path[node].append(path[target])
                     target = path[target]
 
-        #print(list_path)
-        for x in visited.values():
-            if x != 0:
-                result.append(x)
+        # print(list_path)
+        result = [x for x in visited.values() if x != 0]
         return visited, result, path, list_path
 
     def mean_degree(self):
-        return sum(self.get_all_degrees())/len(self.get_all_degrees())
+        return sum(self.get_all_degrees()) / len(self.get_all_degrees())
+
     def write_pajek_file(self):
         f = open("barabasi_pajek.net", "w")
 
@@ -700,9 +702,9 @@ class Grafo:
                 line = f.readline()
                 while line:
                     split = line.split()
-                    ##if len(split) > 0:
+                    # if len(split) > 0:
                     if split[0] == '*Vertices':
-                        #print(split[0].upper())
+                        # print(split[0].upper())
                         line = f.readline()
                         split = line.split()
                         isVertices = True
@@ -737,17 +739,19 @@ class Grafo:
 
                     line = f.readline()
 
-                        #if isVertices:
-                            #print(line.split())
-                           #self.adiciona_vertice(line)
+                    # if isVertices:
+                    # print(line.split())
+                    # self.adiciona_vertice(line)
 
         except IOError:
             return ''
         pass
-G = Grafo(direcionado= False, ponderado = False)
+
+
+G = Grafo(direcionado=False, ponderado=False)
 #
-#G.scale_free_model(100,500)
-#G.imprime()
+# G.scale_free_model(100,500)
+# G.imprime()
 # print(f'RADIUS {G.radius()}')
 # print(f'Diameter: {G.diameter()}')
 # print(f'DEGREES {G.mean_degree()}')
@@ -762,22 +766,22 @@ print(f'RADIUS {G.radius()}')
 # print(f'Diameter: {G.diameter()}')
 # print(f'DEGREES {G.mean_degree()}')
 # print(f'Coef Local Medio: {G.coef_local_medio()}')
-#X = G.scale_free_model(5000,10000)
+# X = G.scale_free_model(5000,10000)
 
-#X.imprime()
-#print(X.size_arestas())
-
-
-#G.random_graph_NM(5000,10000)
-
-#print(f"Coeficiente de Agrupamento Médio: {G.coef_local_medio()}")
-#print(len(G.estrutura))
-#print(f"arestas = {G.size_arestas()}")
+# X.imprime()
+# print(X.size_arestas())
 
 
-#G.eccentricity('D')
-#------------- PRINTAR GET ALL DEGRES (0.5) pontos
-#get_all = (G.get_all_degrees())
+# G.random_graph_NM(5000,10000)
+
+# print(f"Coeficiente de Agrupamento Médio: {G.coef_local_medio()}")
+# print(len(G.estrutura))
+# print(f"arestas = {G.size_arestas()}")
+
+
+# G.eccentricity('D')
+# ------------- PRINTAR GET ALL DEGRES (0.5) pontos
+# get_all = (G.get_all_degrees())
 # plt.hist(get_all)
 # plt.xlabel("")
 # plt.ylabel("")
