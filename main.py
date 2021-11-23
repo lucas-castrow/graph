@@ -2,6 +2,8 @@ from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import time
+
 
 class Grafo:
     def __init__(self, direcionado=False, ponderado=False):
@@ -399,6 +401,7 @@ class Grafo:
 
     def eccentricity(self,u):
         lista, menores_caminhos, path, list_path = self.dijsktra2(u)
+
         print(f'Menores: {u}, {lista}')
         return max(menores_caminhos)
 
@@ -411,13 +414,70 @@ class Grafo:
         return max(maiores)
 
     def radius(self):
-        maiores = []
-        for node in self.estrutura:
-            maiores.append(self.eccentricity(node))
+
+        list_path = {}
+        start_time = time.time()
+
+        for initial in self.estrutura:
+            #maiores.append(self.eccentricity(node))
+            visited = {initial: 0}
+            path = {}
+            nodes = set(self.estrutura)
+
+            while nodes:
+                min_node = None
+                for node in nodes:
+                    if node in visited:
+                        if min_node is None:
+                            min_node = node
+                        elif visited[node] < visited[min_node]:
+                            min_node = node
+
+                if min_node is None:
+                    break
+
+                nodes.remove(min_node)
+                current_weight = visited[min_node]
+
+                for edge in self.retorna_adjacentes(min_node):
+                    try:
+                        print(f'EDGE : {list_path[edge]}')
+                    except KeyError:
+                        continue
+                    if self.ponderado:
+                        weight = current_weight + self.peso(min_node, edge)
+                    else:
+                        weight = current_weight + 1
+                    if edge not in visited or weight < visited[edge]:
+                        visited[edge] = weight
+                        path[edge] = min_node
+
+            result = []
 
 
-        print(maiores)
-        return min(maiores)
+            for node, value in path.items():
+                list_path[node] = [node]
+                list_path[node].append(value)
+
+            for node, value in path.items():
+
+                if value != initial:
+                    target = value
+                    while target != initial:
+                        list_path[node].append(path[target])
+                        target = path[target]
+                list_path[node].reverse()
+            # print(list_path)
+            for x in visited.values():
+                if x != 0:
+                    result.append(x)
+            print(f'path {initial}: {visited}')
+            #list_path.pop(initial)
+            if initial in list_path.keys():
+                list_path.pop(initial)
+            print(f'{list_path}')
+       # return min(maiores)
+        print(f"--- %s seconds --- {time.time() - start_time}")
 
     def coef_local(self, u):
 
@@ -615,9 +675,6 @@ class Grafo:
 
         print(lista)
 
-    def read_pajek_files(self):
-        pass
-
     def dijsktra2(self, initial):
         visited = {initial: 0}
         path = {}
@@ -740,12 +797,29 @@ class Grafo:
             return ''
         pass
 G = Grafo(direcionado= False, ponderado = False)
+
+G.adiciona_vertice('A')
+G.adiciona_vertice('B')
+G.adiciona_vertice('C')
+G.adiciona_vertice('D')
+G.adiciona_vertice('E')
+
+
+G.adiciona_aresta('A','B')
+G.adiciona_aresta('A','E')
+
+G.adiciona_aresta('B','C')
+G.adiciona_aresta('B','D')
+
+G.adiciona_aresta('C','D')
+
 #
-G.scale_free_model(100,500)
+#G.scale_free_model(100,500)
 G.imprime()
+print()
 print(f'RADIUS {G.radius()}')
-print(f'Diameter: {G.diameter()}')
-print(f'DEGREES {G.mean_degree()}')
+#print(f'Diameter: {G.diameter()}')
+#print(f'DEGREES {G.mean_degree()}')
 # print(f'Coef Local Medio: {X.coef_local_medio()}')
 # #print(sum(X.get_all_degrees())/len((X.get_all_degrees())))
 
