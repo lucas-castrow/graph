@@ -6,15 +6,17 @@ import random
 
 class Grafo:
     def __init__(self, direcionado=False, ponderado=False):
-        self.estrutura = defaultdict(list)
+        self.estrutura = {}
         self.direcionado = direcionado
         self.ponderado = ponderado
         self.N = 0
 
     def adiciona_vertice(self, u):
-        if u not in self.estrutura:
-            self.estrutura[u] = []
-            self.N += 1
+            try:
+                self.estrutura[u]
+            except KeyError:
+                self.estrutura[u] = []
+                self.N += 1
 
     def adiciona_aresta(self, u, v, peso=1):
         if self.ponderado:
@@ -264,40 +266,10 @@ class Grafo:
             if s not in visited:
                 visited.append(s)
 
-                for x in self.estrutura[s][::-1]:
-                    if x not in visited:
-                        stack.append(x[0])
+                stack += [x[0] for x in self.estrutura[s][::-1] if x not in visited]
             if s == interest:
                 return visited
         return visited
-
-    def dfs_tj(self, node, visited, result, visiting, count, trees):
-        flag = False
-
-        if node not in visited:
-            res = []
-            visiting.append(node)
-
-            for x in self.estrutura[node][::-1]:
-                visited, result, visiting, count, trees = self.dfs_tj(x, visited, result, visiting, count, trees)
-                for i in self.retorna_vizinhos(node):
-                    if i in visiting:
-                        flag = True
-                        count += 1
-
-                if flag:
-                    [res.append(x) for x in visiting if x not in res]
-                    trees.append(res)
-
-                    break
-
-            visiting.remove(node)
-            visited.append(node)
-            if not self.retorna_adjacentes(node):
-                trees.append([node])
-            result.append(node)
-
-        return visited, result, visiting, count, trees
 
     def dfs_numberOf(self, node, visited):
 
@@ -317,62 +289,6 @@ class Grafo:
                 count += 1
 
         return count
-
-    def isCyclic(self):
-        # pego primeiro vertice
-        first = next(iter(self.estrutura))
-        count = self.tarjan(first)[3]
-        if count > 0:
-            return True
-        else:
-            return False
-
-    def scc(self, node):
-
-        aux = self.tarjan(node)[4]
-
-        resposta = []
-        tree = []
-        for i in aux:
-            tree.append(tuple(sorted(i)))
-
-        result = list(set(tree))
-        for i in result:
-            for x in result:
-                if x != i:
-                    if len(i) > 1 and len(x) > 1:
-                        if len(x) > len(i):
-                            dif = tuple(set(x) - set(i))
-                            if i not in resposta:
-                                resposta.append(i)
-                            resposta.append(dif)
-                    if len(i) == 1:
-                        if i not in resposta:
-                            resposta.append(i)
-
-        return resposta
-
-    def tarjan(self, node, interest=None):
-        result = []
-        visited = []
-        unvisited = []
-        visiting = []
-        trees = []
-        count = 0
-        # coloco todos vertices nao visitados
-        for x in self.estrutura:
-            unvisited.append(x)
-
-        # enquanto tiver vertice em nao-visitados
-        while unvisited:
-            # quando acaba o dfs de cada vertice, chamo outro nao visitado ainda
-            visited, result, visiting, count, trees = self.dfs_tj(unvisited[0], visited, result, visiting, count, trees)
-            # faco diferenca de visitados com nao-visitados
-            unvisited = list(set(unvisited) - set(visited))
-
-        # inverto para ficar da ordem
-        result.reverse()
-        return visited, result, visiting, count, trees
 
     def random_graph_NM(self, n, m):
 
@@ -548,7 +464,6 @@ class Grafo:
         # 15  20
 
     def scale_free_model(self, n, m):
-
         self.adiciona_vertice('1')
         self.adiciona_vertice('2')
         self.adiciona_vertice('3')
@@ -747,47 +662,41 @@ class Grafo:
             return ''
         pass
 
+    def is_conexo(self):
+        if self.direcionado:
+            return self.isSC()
+        dfs = self.DFS_interative(list(self.estrutura.keys())[0])
+        return len(dfs) == len(self.estrutura)
+
+    def getTranspose(self):
+        g = Grafo(direcionado=self.direcionado, ponderado=self.ponderado)
+        for i in self.estrutura:
+            for j in self.estrutura[i]:
+                g.adiciona_vertice(j)
+                g.adiciona_aresta(j, i)
+        return g
+
+    def isSC(self):
+        visited = set(self.DFS_interative(list(self.estrutura)[0])) ^ set(list(self.estrutura))
+        if len(visited) > 0:
+            return False
+        gr = self.getTranspose()
+
+        visited = set(gr.DFS_interative(list(gr.estrutura)[0])) ^ set(list(gr.estrutura))
+        if len(visited) > 0:
+            return False
+        return True
+
+    def is_euleriano(self):
+        if not self.direcionado:
+            impares = len([x for x in self.estrutura.values() if len(x) % 2 != 0])
+            return impares <= 2 and self.is_conexo()
+        else:
+            pass
+
 
 G = Grafo(direcionado=False, ponderado=False)
-#
-# G.scale_free_model(100,500)
-# G.imprime()
-# print(f'RADIUS {G.radius()}')
-# print(f'Diameter: {G.diameter()}')
-# print(f'DEGREES {G.mean_degree()}')
-# print(f'Coef Local Medio: {X.coef_local_medio()}')
-# #print(sum(X.get_all_degrees())/len((X.get_all_degrees())))
 
 G.read_pajek_file('erdos.net')
-G.imprime()
-print(G.size_arestas())
-print(G.N)
-print(f'RADIUS {G.radius()}')
-# print(f'Diameter: {G.diameter()}')
-# print(f'DEGREES {G.mean_degree()}')
-# print(f'Coef Local Medio: {G.coef_local_medio()}')
-# X = G.scale_free_model(5000,10000)
 
-# X.imprime()
-# print(X.size_arestas())
-
-
-# G.random_graph_NM(5000,10000)
-
-# print(f"Coeficiente de Agrupamento Médio: {G.coef_local_medio()}")
-# print(len(G.estrutura))
-# print(f"arestas = {G.size_arestas()}")
-
-
-# G.eccentricity('D')
-# ------------- PRINTAR GET ALL DEGRES (0.5) pontos
-# get_all = (G.get_all_degrees())
-# plt.hist(get_all)
-# plt.xlabel("")
-# plt.ylabel("")
-# plt.show()
-# menores = G.menores_caminhos()
-# plt.hist(menores)
-# plt.xlabel("")
-# plt.ylabel("")
-# plt.show()
+print(f'{G.is_euleriano()}')
